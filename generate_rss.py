@@ -1,6 +1,8 @@
 
 import json
 import os
+import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from email.utils import format_datetime
@@ -17,8 +19,16 @@ if token:
     headers["Authorization"] = f"Bearer {token}"
 
 request = urllib.request.Request(URL, headers=headers)
-with urllib.request.urlopen(request, timeout=30) as response:
-    advisories = json.load(response)
+for attempt in range(1, 4):
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            advisories = json.load(response)
+        break
+    except (urllib.error.URLError, TimeoutError) as error:
+        if attempt == 3:
+            raise
+        print(f"Intento {attempt} fallido ({error}); reintentando...")
+        time.sleep(10 * attempt)
 
 rss = Element("rss", version="2.0")
 channel = SubElement(rss, "channel")
