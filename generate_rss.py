@@ -75,20 +75,19 @@ def cvss_score(advisory):
 
 
 def details(advisory):
+    """Cinco líneas fijas, siempre en este orden: Power Automate las lee por
+    posición (líneas 0 a 4) para montar la tarjeta de Teams."""
     severity = (advisory.get("severity") or "").lower()
-    lines = [f"Gravedad: {SEVERITY_LABELS.get(severity, severity.upper() or 'N/D')}"]
-    score = cvss_score(advisory)
-    if score:
-        lines.append(f"CVSS: {score}")
-    if advisory.get("cve_id"):
-        lines.append(f"CVE: {advisory['cve_id']}")
     vulns = advisory.get("vulnerabilities") or []
     components = sorted({v["package"]["name"] for v in vulns if v.get("package")})
-    if components:
-        lines.append(f"Componente: {', '.join(components)}")
     patched = [v["patched_versions"] for v in vulns if v.get("patched_versions")]
-    if patched:
-        lines.append(f"Versiones corregidas: {', '.join(dict.fromkeys(patched))}")
+    lines = [
+        f"Gravedad: {SEVERITY_LABELS.get(severity, severity.upper() or 'N/D')}",
+        f"CVSS: {cvss_score(advisory) or 'N/D'}",
+        f"CVE: {advisory.get('cve_id') or 'N/D'}",
+        f"Componente: {', '.join(components) or 'N/D'}",
+        f"Versiones corregidas: {', '.join(dict.fromkeys(patched)) or 'N/D'}",
+    ]
     return lines, components
 
 
