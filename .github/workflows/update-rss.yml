@@ -57,7 +57,6 @@ jobs:
   # GitHub desactiva los workflows programados de repos públicos tras 60 días
   # sin actividad. Reactivarlo por la API en cada ejecución reinicia ese plazo.
   keepalive:
-    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     permissions:
       actions: write
