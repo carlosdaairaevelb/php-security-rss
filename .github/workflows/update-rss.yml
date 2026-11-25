@@ -53,3 +53,18 @@ jobs:
       - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  # GitHub desactiva los workflows programados de repos públicos tras 60 días
+  # sin actividad. Reactivarlo por la API en cada ejecución reinicia ese plazo.
+  keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Keep scheduled workflow enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh api --method PUT
+          "repos/${{ github.repository }}/actions/workflows/update-rss.yml/enable"
