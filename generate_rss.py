@@ -20,6 +20,9 @@ URL = (
     "https://api.github.com/repos/php/php-src/security-advisories"
     f"?state=published&sort=published&direction=desc&per_page={MAX_ITEMS}"
 )
+STATUS_LINK = (
+    "https://github.com/carlosdaairaevelb/php-security-rss/actions/workflows/update-rss.yml"
+)
 SEVERITY_LABELS = {
     "critical": "CRÍTICA",
     "high": "ALTA",
@@ -91,6 +94,26 @@ def details(advisory):
     return lines, components
 
 
+def write_status(count):
+    """docs/status.xml: un único elemento con la hora de esta generación.
+    El flujo «PHP RSS - Vigilante» de Power Automate lo lee cada 6 h y avisa
+    en Teams si tiene más de 26 h (workflow fallido, desactivado o Pages
+    caído). Se escribe al final, solo si todo lo anterior ha ido bien."""
+    now = datetime.now(timezone.utc)
+    status = Element("rss", version="2.0")
+    channel = SubElement(status, "channel")
+    SubElement(channel, "title").text = "PHP Security RSS · estado"
+    SubElement(channel, "link").text = STATUS_LINK
+    SubElement(channel, "description").text = "Última generación correcta del feed"
+    item = SubElement(channel, "item")
+    SubElement(item, "title").text = "Última actualización correcta del feed"
+    SubElement(item, "link").text = STATUS_LINK
+    SubElement(item, "guid", isPermaLink="false").text = now.isoformat(timespec="seconds")
+    SubElement(item, "description").text = f"{count} avisos en el feed"
+    SubElement(item, "pubDate").text = format_datetime(now)
+    ElementTree(status).write("docs/status.xml", encoding="utf-8", xml_declaration=True)
+
+
 advisories = fetch_advisories()
 
 rss = Element("rss", version="2.0")
@@ -126,4 +149,5 @@ for advisory in advisories:
 
 os.makedirs("docs", exist_ok=True)
 ElementTree(rss).write("docs/feed.xml", encoding="utf-8", xml_declaration=True)
+write_status(len(advisories))
 print(f"Feed generado con {len(advisories)} avisos.")

@@ -8,8 +8,9 @@ Feed: https://carlosdaairaevelb.github.io/php-security-rss/feed.xml
 
 1. GitHub Actions ejecuta el workflow `update-rss.yml` cada 12 horas (06:17 y 18:17 UTC) o manualmente desde la pestaña *Actions*.
 2. `generate_rss.py` consulta la API de GitHub Security Advisories y genera `docs/feed.xml` con los 30 avisos más recientes.
-3. El feed se publica en GitHub Pages.
+3. El feed se publica en GitHub Pages, junto con `status.xml`, que guarda la hora de la última generación correcta.
 4. Un flujo de Power Automate lee el feed y publica los avisos nuevos en un canal de Microsoft Teams.
+5. Otro flujo, «PHP RSS - Vigilante», lee `status.xml` cada 6 horas y avisa en el mismo canal si lleva más de 26 horas sin actualizarse.
 
 ## Contenido de cada aviso
 
@@ -21,6 +22,7 @@ Feed: https://carlosdaairaevelb.github.io/php-security-rss/feed.xml
 ## Mantenimiento
 
 - GitHub desactiva los workflows programados de repositorios públicos tras 60 días sin actividad. El job `keepalive` reactiva el workflow en cada ejecución programada para evitarlo.
+- Si el workflow falla, se desactiva o GitHub Pages no responde, `status.xml` deja de actualizarse y el vigilante lo avisa en Teams tras dos ejecuciones perdidas (más de 26 horas).
 - El número de avisos y la longitud del resumen se ajustan con `MAX_ITEMS` y `SUMMARY_MAX_CHARS` en `generate_rss.py`.
 
 ## Tecnologías
